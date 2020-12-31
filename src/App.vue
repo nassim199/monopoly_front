@@ -1,17 +1,19 @@
 <template>
   <div id="app">
-    <game-board/>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import GameBoard from './components/GameBoard.vue'
+// import GameBoard from './components/GameBoard.vue'
+// import Home from './components/Home.vue'
 
 export default {
   name: 'app',
-  components: {
-    GameBoard
-  }
+  // components: {
+  //   GameBoard,
+  //   Home
+  // },
 }
 </script>
 

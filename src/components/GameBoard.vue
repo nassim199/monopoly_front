@@ -5,9 +5,9 @@
         </div>
         <div class="gameBoard">
             <img alt="monopoly plateau" src="../assets/monopoly-plateau.jpg" id="plateau">
-            <div v-for="index in boxes" :key=index :class="'div'+index">
-                <div v-if="players.map(p => p.pos).includes(index)">
-                    <div v-for="player in players.filter(p => p.pos == index)" 
+            <div v-for="(box, index) in room.boxes" :key=index :class="'div'+index">
+                <div v-if="room.players.map(p => p.game.pos).includes(index)">
+                    <div v-for="player in room.players.filter(p => p.game.pos == index)" 
                         :key=player.name 
                         :class="'playerPiece ' + player.piece_name">
                     
@@ -16,47 +16,48 @@
             </div>
         </div>
         <div class="playerList">
-            <div v-for="player in players" :key="player.name" class="playerCard">
+            <div v-for="player in room.players" :key="player.name" class="playerCard">
                 <img alt="monopoly plateau" src="../assets/monopoly_boat.jpg">
                 <div>
                     {{ player.name }}
                 </div>
             </div>
             <button @click="playDice">
-                {{ dice1 }} || {{ dice2 }}
+                {{ room.dice1 }} | {{ room.dice2 }}
             </button>
         </div>
     </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
     data() {
         return {
-            dice1 : 1,
-            dice2 : 1,
-            boxes: Array(40).fill().map((_, i) => i+1),
-            players: [
-                { name: "player 1", piece_name: "boat", pos: 1},
-                { name: "player 2", piece_name: "hat", pos: 4},
-                { name: "player 3", piece_name: "piece", pos: 34}
-            ],
-            playerTurn: 0
+            room: {},
+            roomId: this.$route.params.roomId
         }
     },
     methods: {
         playDice() {
-            this.dice1 = Math.floor(Math.random() * (6) ) + 1;
-            this.dice1 = Math.floor(Math.random() * (6) ) + 1;
-
-            let p = this.players[this.playerTurn];
-
-            p.pos = (p.pos + this.dice1 + this.dice2) ;
-            if (p.pos > 40) p.pos -= 40;
-            this.players.splice(this.playerTurn, 1, p)
-
-            this.playerTurn = (this.playerTurn + 1) % 3
+            axios.post("http://192.168.43.215:3000/game/1/playRound")
+                .then((res) => {
+                    this.room = res.data;
+                })
+                .catch(() => {
+                    alert("play round error");
+                })
         }
+    },
+    created() {
+        axios.get("http://192.168.43.215:3000/game/"+this.roomId)
+            .then((res) => {
+                this.room = res.data;      
+            })
+            .catch(() => {
+
+            });
     }
 }
 </script>
