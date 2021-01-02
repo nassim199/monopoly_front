@@ -1,7 +1,17 @@
 <template>
     <div class="container">
         <div class="chat">
-            Chat
+            <ul>
+                <li v-for="(message, index) in room.chat" :key="index">
+                    {{ message }}
+                </li>
+            </ul>
+            <div>
+                <input type="text" v-model="message">
+                <button @click="sendMessage">
+                    Send Message
+                </button>
+            </div>
         </div>
         <div class="gameBoard">
             <img alt="monopoly plateau" src="../assets/monopoly-plateau.jpg" id="plateau">
@@ -22,7 +32,7 @@
                     {{ player.name }}
                 </div>
             </div>
-            <button @click="playDice">
+            <button @click="playDice" :disabled="myTurn">
                 {{ room.dice1 }} | {{ room.dice2 }}
             </button>
         </div>
@@ -36,28 +46,64 @@ export default {
     data() {
         return {
             room: {},
-            roomId: this.$route.params.roomId
+            player: {},
+            roomId: this.$route.params.roomId,
+            message: ""
+        }
+    },
+    computed: {
+        myTurn() {
+            return false;
+            //return this.$store.state.player.game.pos == this.room.playTurn;
         }
     },
     methods: {
         playDice() {
-            axios.post("http://192.168.43.215:3000/game/1/playRound")
-                .then((res) => {
-                    this.room = res.data;
-                })
-                .catch(() => {
-                    alert("play round error");
-                })
+            axios.post("http://localhost:3000/game/"+ this.roomId +"/playRound");
+                // .then((res) => {
+                //     this.room = res.data;
+                // })
+                // .catch(() => {
+                //     alert("play round error");
+                // })
+        },
+        sendMessage() {
+    
+            axios.post("http://localhost:3000/game/"+ this.roomId +"/chat", {
+                message: this.message
+            });
+            this.message = "";
         }
     },
     created() {
-        axios.get("http://192.168.43.215:3000/game/"+this.roomId)
-            .then((res) => {
-                this.room = res.data;      
-            })
+        if (this.player._id) {
+            this.$store.state.player = this.player
+        } else {
+            this.player = this.$store.state.player
+        }
+
+        alert(this.$store.state.player._id)
+        axios.get("http://localhost:3000/game/"+this.roomId)
+            .then((res) => { 
+                this.room = res.data;  
+           })
             .catch(() => {
 
             });
+
+        this.$socket.emit('join_room', this.roomId);
+    },
+    sockets: {
+        playRound(room) {
+            this.room = room;
+        },
+        chatMessage(data) {
+            const message = data.newMessage;
+            let r = this.room
+            r.chat.push(message);
+
+            this.room = r;
+        }
     }
 }
 </script>
