@@ -35,12 +35,16 @@
             <button @click="playDice" :disabled="myTurn">
                 {{ room.dice1 }} | {{ room.dice2 }}
             </button>
+            <button @click="leaveRoom">
+                Leave room
+            </button>
         </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios';
+import config from '../config'
 
 export default {
     data() {
@@ -59,7 +63,7 @@ export default {
     },
     methods: {
         playDice() {
-            axios.post("http://localhost:3000/game/"+ this.roomId +"/playRound");
+            axios.post(config.serverLink + "/game/"+ this.roomId +"/playRound");
                 // .then((res) => {
                 //     this.room = res.data;
                 // })
@@ -69,29 +73,32 @@ export default {
         },
         sendMessage() {
     
-            axios.post("http://localhost:3000/game/"+ this.roomId +"/chat", {
+            axios.post(config.serverLink + "/game/"+ this.roomId +"/chat", {
                 message: this.message
             });
             this.message = "";
-        }
+        },
+        leaveRoom() {
+            axios.post(config.serverLink + "/game/"+this.roomId+ "/leaveRoom", {
+                playerId: this.$store.state.player._id
+            }).then(() => {
+                this.$router.push('/home')
+
+                if (this.room.players.length == 0) {
+                    axios.post(config.serverLink + "/game/" + this.roomId + "/deleteRoom"); 
+                }
+            }).catch(() => {})
+
+        },
     },
     created() {
-        if (this.player._id) {
-            this.$store.state.player = this.player
-        } else {
-            this.player = this.$store.state.player
-        }
-
-        alert(this.$store.state.player._id)
-        axios.get("http://localhost:3000/game/"+this.roomId)
+        axios.get(config.serverLink + "/game/"+this.roomId)
             .then((res) => { 
                 this.room = res.data;  
            })
             .catch(() => {
 
             });
-
-        this.$socket.emit('join_room', this.roomId);
     },
     sockets: {
         playRound(room) {
@@ -103,6 +110,13 @@ export default {
             r.chat.push(message);
 
             this.room = r;
+        },
+        leftRoom(player) {
+            let r = this.room
+
+            r.players = r.players.filter((p) => p._id != player._id);
+
+            this.room = r
         }
     }
 }

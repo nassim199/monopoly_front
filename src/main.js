@@ -1,14 +1,18 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+import config from './config'
+
 import VueRouter from 'vue-router'
 import { store } from './store/store'
 import { routes } from './routes'
 
 import socketIo from 'socket.io-client';
-import VueScoketIo from 'vue-socket.io';
+import VueScoketIo from 'vue-socket.io-extended';
+//from 'vue-socket.io';
 
-const SocketInstance = socketIo('http://localhost:3000');
+
+const SocketInstance = socketIo(config.serverLink);
 Vue.use(VueScoketIo, SocketInstance);
 
 
