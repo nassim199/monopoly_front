@@ -8,12 +8,12 @@ import { store } from './store/store'
 import { routes } from './routes'
 
 import socketIo from 'socket.io-client';
-import VueScoketIo from 'vue-socket.io-extended';
-//from 'vue-socket.io';
+//import VueScoketIo from 'vue-socket.io-extended';
+import VueSocketIo from 'vue-socket.io';
 
 
 const SocketInstance = socketIo(config.serverLink);
-Vue.use(VueScoketIo, SocketInstance);
+Vue.use(VueSocketIo, SocketInstance);
 
 
 Vue.use(VueRouter);
